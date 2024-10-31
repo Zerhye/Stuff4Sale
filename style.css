@@ -1,0 +1,142 @@
+/* General Styles */
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+    color: #333;
+}
+
+.container {
+    width: 80%;
+    max-width: 600px;
+    margin: auto;
+    background: #fff;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    margin-top: 50px;
+}
+
+h2, h3 {
+    color: #333;
+    text-align: center;
+}
+
+/* Button Styles */
+button {
+    background-color: #007bff;
+    color: #fff;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    display: inline-block;
+    margin: 10px 0;
+    width: 100%; /* Full width buttons for forms */
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+/* Input Field Styles */
+input[type="text"],
+input[type="email"],
+input[type="password"] {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+
+/* Search Bar Styles */
+#searchInput {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    width: calc(100% - 120px);
+    margin-right: 10px;
+}
+
+#searchButton {
+    width: 100px;
+}
+
+/* Item Styles */
+.item {
+    background: #f9f9f9;
+    margin: 15px 0;
+    padding: 15px;
+    border-radius: 5px;
+    box-shadow: 0 1px 5px rgba(0,0,0,0.1);
+    transition: transform 0.2s;
+}
+
+.item:hover {
+    transform: scale(1.02);
+}
+
+.item img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 5px;
+}
+
+/* Footer Styles */
+footer {
+    text-align: center;
+    margin-top: 20px;
+}
+
+footer p {
+    margin: 10px 0;
+}
+
+/* Welcome Page Specific Styles */
+.welcome-container {
+    text-align: center;
+    padding: 50px 20px;
+}
+
+.welcome-container h2 {
+    margin-bottom: 20px;
+}
+
+.welcome-container button {
+    width: 200px; /* Buttons have fixed width on welcome page */
+    margin: 10px;
+}
+
+/* Registration/Login Page Specific Styles */
+form {
+    margin-top: 20px;
+}
+
+form label {
+    display: block;
+    margin: 10px 0 5px;
+}
+
+form button {
+    width: 100%; /* Full width buttons for forms */
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+    .container {
+        width: 95%;
+    }
+
+    #searchInput {
+        width: calc(100% - 90px);
+    }
+}
+.error-message {
+    color: red;
+    font-weight: bold;
+    margin-top: 10px;
+}
