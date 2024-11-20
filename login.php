@@ -2,12 +2,6 @@
 session_start();
 require 'db.php';
 
-// Check if the user is already logged in; if so, redirect to welcome page
-if (isset($_SESSION['user_id'])) {
-    header("Location: welcome.html");
-    exit();
-}
-
 // Initialize error message variable
 $error = "";
 
@@ -23,10 +17,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // Verify user password
     if ($user && password_verify($password, $user['password'])) {
-        $_SESSION['user_id'] = $user['id']; // Assuming 'id' is the primary key
-        header("Location: index.php"); 
+        $_SESSION['user_id'] = $user['user_id']; // Assuming 'id' is the primary key
+        $_SESSION['role'] = $user['role'];
+        header(header: "Location: index.php"); 
     } else {
         $error = "Invalid email or password. Please try again.";
     }
+
+    
 }
 ?>

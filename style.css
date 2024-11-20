@@ -25,7 +25,7 @@ h2, h3 {
 
 /* Button Styles */
 button {
-    background-color: #007bff;
+    background-color: #ec0b0b;
     color: #fff;
     padding: 10px 15px;
     border: none;
@@ -38,7 +38,7 @@ button {
 }
 
 button:hover {
-    background-color: #0056b3;
+    background-color: #6a6e74;
 }
 
 /* Input Field Styles */
