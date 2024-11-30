@@ -163,7 +163,7 @@ if ($userRole === 'admin') {
         <!-- Add Item Form -->
         <div id="addItemForm" style="display:none;">
             <h4>Enter Item Details</h4>
-            <form id="addItemFormElement" method="POST" enctype="multipart/form-data">
+            <form id="addItemFormElement" method="POST" action ="process_add_item.php" enctype="multipart/form-data">
                 <label for="itemName">Item Name:</label>
                 <input type="text" id="itemName" name="itemName" required><br><br>
                 

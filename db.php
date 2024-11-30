@@ -1,6 +1,6 @@
 <?php
 $host = "localhost"; // Your server name
-$port = "11211"; // Default MySQL port
+$port = "3306"; // Default MySQL port
 $user = "root"; // Your MySQL username
 $pass = ""; // Your MySQL password (default is empty in XAMPP)
 $dbname = "stuff4sale"; // Replace with your actual database name

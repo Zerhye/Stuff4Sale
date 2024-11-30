@@ -20,8 +20,33 @@ if (isset($_POST['submitItem'])) {
 
         if (move_uploaded_file($_FILES['itemImage']['tmp_name'], $uploadedFile)) {
             try {
-                $stmt = $db->prepare("INSERT INTO items (name, category, price, description, image, approval_status, user_id) VALUES (?, ?, ?, ?, ?, ?, ?)");
-                $stmt->execute([$itemName, $itemCategory, $itemPrice, $itemDescription, $uploadedFile, 'pending', $userId]);
+                // Step 1: Check if the category exists
+                $stmt = $db->prepare("SELECT category_id FROM categories WHERE name = :categoryName");
+                $stmt->bindParam(':categoryName', $itemCategory, PDO::PARAM_STR);
+                $stmt->execute();
+
+                // Step 2: Get the category_id (fetch the first column)
+                $categoryId = $stmt->fetchColumn();  // Ensure this fetches the correct category_id
+
+                // Step 3: If the category doesn't exist, insert a new one
+                if (!$categoryId) {
+                    // Insert the new category into the categories table
+                    $stmt = $db->prepare("INSERT INTO categories (name) VALUES (:categoryName)");
+                    $stmt->bindParam(':categoryName', $itemCategory, PDO::PARAM_STR);
+                    if ($stmt->execute()) {
+                        // Get the last inserted category_id
+                        $categoryId = $db->lastInsertId();  // Fetch the newly inserted category_id
+
+                        if (!$categoryId) {
+                            die("<script>alert('Error: Failed to insert new category.'); window.location.href = 'index.php';</script>");
+                        }
+                    } else {
+                        die("<script>alert('Error: Failed to insert new category.'); window.location.href = 'index.php';</script>");
+                    }
+                }
+
+                $stmt = $db->prepare("INSERT INTO items (name, category_id, price, description, image_path, approval_status, user_id) VALUES (?, ?, ?, ?, ?, ?, ?)");
+                $stmt->execute([$itemName, $categoryId, $itemPrice, $itemDescription, $uploadedFile, 'pending', $userId]);
 
                 if ($stmt->rowCount() > 0) {
                     die("<script>alert('Item added successfully!'); window.location.href = 'index.php';</script>");
