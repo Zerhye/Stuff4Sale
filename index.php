@@ -26,6 +26,13 @@ if ($userRole === 'admin') {
     $userStmt = $db->query("SELECT * FROM users");
     $users = $userStmt->fetchAll(PDO::FETCH_ASSOC);
 }
+
+// Include user management logic for admin actions
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if ($userRole === 'admin') {
+        include 'manage_user.php'; // Logic to handle user actions like promoting, demoting, deleting
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -37,43 +44,190 @@ if ($userRole === 'admin') {
     <link rel="stylesheet" href="style.css">
     <script>
         // Confirmation for admin actions
-        function confirmAction(action, username) {
-            return confirm(`Are you sure you want to ${action} ${username}?`);
+        function confirmAction(action, targetName) {
+            return confirm(`Are you sure you want to ${action} ${targetName}?`);
         }
+        
+        function toggleVisibility(buttonId, contentId) {
+            const button = document.getElementById(buttonId);
+            const content = document.getElementById(contentId);
+            if (button) {
+                button.addEventListener('click', function () {
+                    content.style.display = content.style.display === 'none' ? 'block' : 'none';
+                });
+            }
+        }
+        // Toggle Visibility for Admin or Staff Panels
+        document.addEventListener('DOMContentLoaded', function () {
+            const adminButton = document.getElementById("manageUsersButton");
+            if (adminButton) {
+                adminButton.addEventListener("click", function() {
+                    const adminContent = document.getElementById("manageUsersContent");
+                    adminContent.style.display = adminContent.style.display === "none" ? "block" : "none";
+                });
+            }
+
+            // Handle AJAX submission for user management forms
+            const userManagementForms = document.querySelectorAll('.user-management-form');
+            userManagementForms.forEach(form => {
+                form.addEventListener('submit', async function (e) {
+                    e.preventDefault(); // Prevent the default form submission
+                    
+                    const formData = new FormData(this);
+                    try {
+                        const response = await fetch('manage_user.php', {
+                            method: 'POST',
+                            body: formData
+                        });
+                        const result = await response.text(); // Expect plain text message
+                        
+                        alert(result); // Display response message
+
+                        // Optionally reload the page to reflect changes
+                        location.reload(); // Remove if you don't want the page to reload
+                    } catch (error) {
+                        alert('An error occurred: ' + error.message);
+                    }
+                });
+            });
+
+            // Add Event Listener to Form for AJAX Submission
+            const addItemForm = document.getElementById('addItemFormElement');
+            if (addItemForm) {
+                addItemForm.addEventListener('submit', async function (e) {
+                    e.preventDefault(); // Prevent the default form submission
+                    const formData = new FormData(this);
+
+                    try {
+                        const response = await fetch('process_add_item.php', {
+                            method: 'POST',
+                            body: formData
+                        });
+                        const result = await response.json();
+
+                        if (result.status === 'success') {
+                            alert(result.message);
+                            location.reload(); // Reload the page to reflect changes
+                        } else {
+                            alert(result.message);
+                        }
+                    } catch (error) {
+                        alert('An error occurred: ' + error.message);
+                    }
+                });
+            }
+        });
+                // Search Items
+                document.addEventListener('DOMContentLoaded', function () {
+            const searchInput = document.getElementById('searchInput');
+            const searchButton = document.getElementById('searchButton');
+            const itemsList = document.getElementById('itemsList');
+
+            if (searchButton) {
+                searchButton.addEventListener('click', function () {
+                    const query = searchInput.value.toLowerCase();
+                    const items = itemsList.getElementsByClassName('item');
+
+                    Array.from(items).forEach(item => {
+                        const itemName = item.querySelector('h3').textContent.toLowerCase();
+                        if (itemName.includes(query)) {
+                            item.style.display = 'block';
+                        } else {
+                            item.style.display = 'none';
+                        }
+                    });
+                });
+            }
+        });
+
+        
     </script>
 </head>
 <body>
     <div class="container">
         <h2>Welcome to Stuff4Sale</h2>
-       
+
         <!-- Search Bar -->
         <input type="text" id="searchInput" placeholder="Search for items...">
         <button id="searchButton">Search</button>
 
+        <!-- Items Listing -->
         <div id="itemsList">
             <!-- Items will be dynamically inserted here by PHP -->
             <?php foreach ($items as $item): ?>
+                <?php
+                // Fetch the category name for the current item based on category_id
+                $categoryStmt = $db->prepare("SELECT name FROM categories WHERE category_id = :categoryId");
+                $categoryStmt->bindParam(':categoryId', $item['category_id'], PDO::PARAM_INT);
+                $categoryStmt->execute();
+                $categoryName = $categoryStmt->fetchColumn();
+                ?>
                 <div class="item">
-                    <img src="<?php echo $item['image']; ?>" alt="Item Image">
-                    <h3><?php echo $item['name']; ?></h3>
-                    <p>Category: <?php echo $item['category']; ?></p>
+                    <img src="<?php echo htmlspecialchars($item['image_path']); ?>" alt="Item Image">
+                    <h3><?php echo htmlspecialchars($item['name']); ?></h3>
+                    <p>Category: <?php echo htmlspecialchars($categoryName); ?></p>
                     <p>Price: $<?php echo number_format($item['price'], 2); ?></p>
-                    <p>Description: <?php echo $item['description']; ?></p>
+                    <p>Description: <?php echo htmlspecialchars($item['description']); ?></p>
                     
-                    <!-- Show pending status for staff/admin -->
                     <?php if ($userRole === 'admin' || $userRole === 'staff'): ?>
-                        <p>Status: <?php echo $item['approval_status']; ?></p>
+                        <p>Status: <?php echo htmlspecialchars($item['approval_status']); ?></p>
                         <?php if ($item['approval_status'] === 'pending'): ?>
-                            <form action="approve_item.php" method="POST">
-                                <input type="hidden" name="item_id" value="<?php echo $item['id']; ?>">
-                                <button type="submit" name="approve">Approve</button>
-                                <button type="submit" name="reject">Reject</button>
+                            <form action="approve_item.php" method="POST" onsubmit="return confirmAction('approve', '<?php echo htmlspecialchars($item['name']); ?>');">
+                                <input type="hidden" name="item_id" value="<?php echo $item['item_id']; ?>">
+                                <input type="hidden" name="action" value="approve">
+                                <label for="reason">Reason for Approval:</label>
+                                <textarea id="reason" name="reason" required></textarea>
+                                <button type="submit">Approve</button>
+                            </form>
+                            <form action="approve_item.php" method="POST" onsubmit="return confirmAction('reject', '<?php echo htmlspecialchars($item['name']); ?>');">
+                                <input type="hidden" name="item_id" value="<?php echo $item['item_id']; ?>">
+                                <input type="hidden" name="action" value="reject">
+                                <label for="reason">Reason for Rejection:</label>
+                                <textarea id="reason" name="reason" required></textarea>
+                                <button type="submit">Reject</button>
                             </form>
                         <?php endif; ?>
                     <?php endif; ?>
                 </div>
             <?php endforeach; ?>
         </div>
+
+        <!-- Role-Based Panels -->
+        <?php if ($userRole === 'customer'): ?>
+            <div class="customer-panel">
+                <h3>Your Actions</h3>
+                <button id="addItemButton">Add New Item</button>
+                <button id="viewMyItemsButton">My Items</button>
+            </div>
+        <?php endif; ?>
+
+        <!-- Add Item Form -->
+        <div id="addItemForm" style="display:none;">
+            <h4>Enter Item Details</h4>
+            <form id="addItemFormElement" method="POST" enctype="multipart/form-data">
+                <label for="itemName">Item Name:</label>
+                <input type="text" id="itemName" name="itemName" required><br><br>
+                
+                <label for="itemCategory">Category:</label>
+                <select id="itemCategory" name="itemCategory" required>
+                    <option value="electronics">Electronics</option>
+                    <option value="clothing">Clothing</option>
+                    <option value="home">Home Goods</option>
+                </select><br><br>
+                
+                <label for="itemImage">Image:</label>
+                <input type="file" id="itemImage" name="itemImage" accept="image/*" required><br><br>
+                
+                <label for="itemPrice">Price:</label>
+                <input type="number" id="itemPrice" name="itemPrice" step="0.01" required><br><br>
+                
+                <label for="itemDescription">Description:</label>
+                <textarea id="itemDescription" name="itemDescription" required></textarea><br><br>
+                
+                <button type="submit" name="submitItem">Submit Item</button>
+            </form>
+        </div>
+
         <!-- Admin Panel -->
         <?php if ($userRole === 'admin'): ?>
             <div class="admin-panel">
@@ -123,93 +277,14 @@ if ($userRole === 'admin') {
                 </div>
             </div>
         <?php endif; ?>
-
-        <!-- Role-Based Panels -->
-        <?php if ($userRole === 'staff' || $userRole === 'admin'): ?>
-            <div class="staff-panel">
-                <h3>Staff Panel</h3>
-                <button id="reviewItemsButton">Review Items</button>
-                <div id="staffContent" style="display:none;">
-                    <h4>Review Items</h4>
-                    <?php foreach ($items as $item): ?>
-                        <div class="item">
-                            <h3><?php echo htmlspecialchars($item['name']); ?></h3>
-                            <p>Category: <?php echo htmlspecialchars($item['category']); ?></p>
-                            <p>Price: $<?php echo number_format($item['price'], 2); ?></p>
-                            <p>Description: <?php echo htmlspecialchars($item['description']); ?></p>
-                            <p>Status: <?php echo htmlspecialchars($item['approval_status']); ?></p>
-                            <?php if ($item['approval_status'] === 'pending'): ?>
-                                <form action="approve_item.php" method="POST">
-                                    <input type="hidden" name="item_id" value="<?php echo $item['id']; ?>">
-                                    <button type="submit" name="approve">Approve</button>
-                                    <button type="submit" name="reject">Reject</button>
-                                </form>
-                            <?php endif; ?>
-                        </div>
-                    <?php endforeach; ?>
-                </div>
-            </div>
-        <?php endif; ?>
-
-        <!-- Customer Panel -->
-        <?php if ($userRole === 'customer'): ?>
-            <div class="customer-panel">
-                <h3>Your Actions</h3>
-                <button id="addItemButton">Add New Item</button>
-                <button id="viewMyItemsButton">My Items</button>
-            </div>
-        <?php endif; ?>
-
-        <!-- Add Item Form -->
-        <div id="addItemForm" style="display:none;">
-            <h4>Enter Item Details</h4>
-            <form id="addItemFormElement" method="POST" enctype="multipart/form-data">
-                <label for="itemName">Item Name:</label>
-                <input type="text" id="itemName" name="itemName" required><br><br>
-                
-                <label for="itemCategory">Category:</label>
-                <select id="itemCategory" name="itemCategory" required>
-                    <option value="electronics">Electronics</option>
-                    <option value="clothing">Clothing</option>
-                    <option value="home">Home Goods</option>
-                </select><br><br>
-                
-                <label for="itemImage">Image:</label>
-                <input type="file" id="itemImage" name="itemImage" accept="image/*" required><br><br>
-                
-                <label for="itemPrice">Price:</label>
-                <input type="number" id="itemPrice" name="itemPrice" step="0.01" required><br><br>
-                
-                <label for="itemDescription">Description:</label>
-                <textarea id="itemDescription" name="itemDescription" required></textarea><br><br>
-                
-                <button type="submit" name="submitItem">Submit Item</button>
-            </form>
-        </div>
-
-        <footer>
+    </div>
+    <footer>
             <p><a href="logout.php">Logout</a></p>
         </footer>
     </div>
 
     <script>
-        // Toggle Admin Content
-        const adminButton = document.getElementById("manageUsersButton");
-        if (adminButton) {
-            adminButton.addEventListener("click", function() {
-                const adminContent = document.getElementById("manageUsersContent");
-                adminContent.style.display = adminContent.style.display === "none" ? "block" : "none";
-            });
-        }
-
-        // Toggle Add Item Form
-        const addItemButton = document.getElementById("addItemButton");
-        if (addItemButton) {
-            addItemButton.addEventListener("click", function() {
-                const addItemForm = document.getElementById("addItemForm");
-                addItemForm.style.display = addItemForm.style.display === "none" ? "block" : "none";
-            });
-        }
+        toggleVisibility('addItemButton', 'addItemForm');
     </script>
 </body>
 </html>
