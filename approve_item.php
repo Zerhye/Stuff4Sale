@@ -1,7 +1,7 @@
 <?php
 session_start();
 if (!isset($_SESSION['user_id']) || ($_SESSION['role'] !== 'admin' && $_SESSION['role'] !== 'staff')) {
-    echo json_encode(['status' => 'error', 'message' => 'Unauthorized access.']);
+    echo "Unauthorized access.";
     exit();
 }
 
@@ -13,12 +13,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $reason = isset($_POST['reason']) ? trim($_POST['reason']) : '';
 
     if ($itemId <= 0 || empty($action) || empty($reason)) {
-        echo json_encode(['status' => 'error', 'message' => 'Invalid input. Please provide valid details.']);
+        echo "Invalid input. Please provide valid details.";
         exit();
     }
 
     if (!in_array($action, ['approve', 'reject'])) {
-        echo json_encode(['status' => 'error', 'message' => 'Invalid action.']);
+        echo "Invalid action.";
         exit();
     }
 
@@ -30,12 +30,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->bindParam(':itemId', $itemId, PDO::PARAM_INT);
         
         if ($stmt->execute()) {
-            echo json_encode(['status' => 'success', 'message' => "Item successfully $status."]);
+            echo "Item successfully $status.";
         } else {
-            echo json_encode(['status' => 'error', 'message' => 'Failed to update item status.']);
+            echo "Failed to update item status.";
         }
     } catch (PDOException $e) {
-        echo json_encode(['status' => 'error', 'message' => 'An error occurred: ' . $e->getMessage()]);
+        echo "An error occurred: " . $e->getMessage();
     }
 }
 ?>

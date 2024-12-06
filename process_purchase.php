@@ -1,19 +1,16 @@
 <?php
 session_start();
 require 'db.php'; // Include database connection
+header('Content-Type: application/json');
 
-// Get the JSON input
+// Get JSON input
 $data = json_decode(file_get_contents('php://input'), true);
 $itemId = isset($data['item_id']) ? (int)$data['item_id'] : 0;
 $buyerId = isset($data['buyer_id']) ? (int)$data['buyer_id'] : 0;
 
-// Check if item ID and buyer ID are valid
 if ($itemId > 0 && $buyerId > 0) {
     try {
-        // Start transaction
-        $db->beginTransaction();
-
-        // Check if the item is already owned
+        // Check if the item is already owned by this user
         $stmt = $db->prepare("SELECT user_id FROM items WHERE item_id = :item_id");
         $stmt->bindParam(':item_id', $itemId, PDO::PARAM_INT);
         $stmt->execute();
@@ -23,6 +20,9 @@ if ($itemId > 0 && $buyerId > 0) {
             echo json_encode(['status' => 'error', 'message' => 'You already own this item.']);
             exit();
         }
+
+        // Start transaction
+        $db->beginTransaction();
 
         // Update the item's owner to the buyer
         $updateStmt = $db->prepare("UPDATE items SET user_id = :buyer_id WHERE item_id = :item_id");
@@ -36,7 +36,7 @@ if ($itemId > 0 && $buyerId > 0) {
         $transactionStmt->bindParam(':item_id', $itemId, PDO::PARAM_INT);
         $transactionStmt->execute();
 
-        // Commit the transaction
+        // Commit transaction
         $db->commit();
 
         // Return success response

@@ -79,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             method: 'POST',
                             body: formData
                         });
-                        const result = await response.text(); // Expect plain text message
+                        const result = await response.json(); // Expect plain text message
                         
                         alert(result); // Display response message
 
@@ -90,6 +90,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                 });
             });
+
 
             // Add Event Listener to Form for AJAX Submission
             const addItemForm = document.getElementById('addItemFormElement');
@@ -188,16 +189,61 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </form>
                         <?php endif; ?>
                     <?php endif; ?>
+                    <?php if ($userRole === 'customer'): ?>
+                        <!-- Purchasing Form -->
+                        <form id="purchaseForm">
+                            <input type="hidden" name="item_id" value="<?php echo $item['item_id']; ?>">
+                            <input type="hidden" name="buyer_id" value="<?php echo $currentUserId; ?>">
+                            <button type="button" onclick="submitPurchase(event)">Buy</button>
+                        </form>
+                    <?php endif; ?>
                 </div>
             <?php endforeach; ?>
         </div>
 
+        <script>
+        async function submitPurchase(event) {
+        // Prevent the form's default submission
+        event.preventDefault();
+
+        const form = document.getElementById('purchaseForm');
+        const formData = new FormData(form);
+
+        const data = {
+            item_id: formData.get('item_id'),
+            buyer_id: formData.get('buyer_id')
+        };
+
+        try {
+        
+            const response = await fetch('process_purchase.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+
+            // Handle the response
+            if (response.ok && result.status === 'success') {
+                alert(result.message); // Display success message
+            } else {
+                alert(result.message || 'An error occurred during the purchase process.');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('An unexpected error occurred. Please try again later.');
+        } 
+    }
+
+        </script>
+
         <!-- Role-Based Panels -->
         <?php if ($userRole === 'customer'): ?>
             <div class="customer-panel">
-                <h3>Your Actions</h3>
                 <button id="addItemButton">Add New Item</button>
-                <button id="viewMyItemsButton">My Items</button>
             </div>
         <?php endif; ?>
 
@@ -213,6 +259,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <option value="electronics">Electronics</option>
                     <option value="clothing">Clothing</option>
                     <option value="home">Home Goods</option>
+                    <option value="vehicle">Cars</option>
+                    <option value="art">Artwork</option>
+                    <option value="books">Books</option>
                 </select><br><br>
                 
                 <label for="itemImage">Image:</label>
