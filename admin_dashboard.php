@@ -18,6 +18,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard</title>
     <link rel="stylesheet" href="style.css"> <!-- Link to CSS -->
+    <link rel="icon" type ="image/x-icon" href="./images/icon.png">
 </head>
 <body>
     <div class="container">

@@ -30,7 +30,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->bindParam(':itemId', $itemId, PDO::PARAM_INT);
         
         if ($stmt->execute()) {
-            echo "Item successfully $status.";
+            $message = "Item successfully $status.";  // Your success message
+    
+            // Print JavaScript code to show an alert with the success message and then redirect
+            echo "<script>
+                    alert('" . addslashes($message) . "');
+                    window.location.href = 'index.php'; // Replace with your target page
+                </script>";
+            
         } else {
             echo "Failed to update item status.";
         }

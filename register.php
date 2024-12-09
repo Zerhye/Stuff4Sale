@@ -24,7 +24,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         exit();
     } catch (PDOException $e) {
         // Handle errors
-        echo "Error: " . $e->getMessage();
+        echo "<script>
+            alert('Error: " . addslashes($e->getMessage()) . "');
+            window.location.href = 'register.html'; // Change to your desired page
+          </script>";
+        //exit();
     }
 }
 ?>
