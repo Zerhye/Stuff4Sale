@@ -64,7 +64,6 @@ CREATE TABLE `items` (
 --
 
 INSERT INTO `items` (`item_id`, `user_id`, `name`, `category_id`, `price`, `image_path`, `description`, `approval_status`, `reason`, `created_at`) VALUES
-(3, 12, 'Iphone 16', 1, 10.00, 'uploads/Iphone.jpg', 'An Iphone', 'approved', 'This shit good asf', '2024-12-02 19:12:09'),
 (4, 10, 'Chair', 2, 20.00, 'uploads/chair.jpg', 'A chair', 'approved', 'Ap', '2024-12-02 19:37:14'),
 (5, 10, 'Iphone 16', 1, 300000.00, 'uploads/Iphone.jpg', 'An Iphone', 'rejected', 'Too Expensive', '2024-12-03 21:01:35'),
 (6, 12, 'NEW IPHONE 16!!!', 1, 10000000.00, 'uploads/Iphone.jpg', 'NEW IPHONE', 'rejected', 'Too expensive!!!', '2024-12-05 19:27:30');
